@@ -1,6 +1,6 @@
 # SoilScan 🌱
 
-Ứng dụng web cho phép người dùng chụp/tải lên ảnh đất, nhập vị trí, và nhận đánh giá + kiến nghị cải tạo đất từ AI (Google Gemini Vision).
+Ứng dụng web cho phép người dùng chụp/tải lên ảnh đất, nhập vị trí, và nhận đánh giá + kiến nghị cải tạo đất từ AI (Google Gemini Vision). Kết quả có vị trí sẽ được gom vào **bản đồ sức khỏe đất cộng đồng** (dạng như Google Reviews, xem mục 6).
 
 **Web app:** https://farmblock-one.github.io/soil-scan/ (frontend, tĩnh trên GitHub Pages)
 **Backend API:** deploy trên Render.com — xem hướng dẫn bên dưới.
@@ -69,18 +69,37 @@ npm run dev              # chạy tại http://localhost:5173, tự proxy /api s
 
 Lưu ý: Đây là đánh giá sơ bộ qua hình ảnh bằng AI, mang tính tham khảo — không thay thế xét nghiệm đất chuyên nghiệp trong phòng thí nghiệm.
 
+## 6. Bản đồ cộng đồng (tùy chọn)
+
+Mỗi khi ai đó phân tích đất kèm vị trí, và ảnh được AI xác nhận đúng là ảnh đất (không phải ảnh linh tinh), kết quả (loại đất, điểm sức khỏe, tóm tắt — **không kèm ảnh**) sẽ được ghi vào 1 Google Sheet và hiển thị thành điểm trên bản đồ ở tab "Bản đồ cộng đồng". Dữ liệu gom qua **Google Apps Script** (miễn phí, không cần Google Cloud Console):
+
+1. Tạo 1 Google Sheet mới (trống).
+2. Vào **Extensions → Apps Script**, xóa code mẫu, dán toàn bộ nội dung file [`apps-script/Code.gs`](apps-script/Code.gs) trong repo này vào.
+3. Trong code vừa dán, đổi dòng `const SECRET = "REPLACE_WITH_YOUR_SHEETS_SECRET";` thành một chuỗi bí mật tự chọn (bất kỳ, dùng để chặn người lạ gửi rác vào Sheet).
+4. Bấm **Deploy → New deployment** → chọn loại **Web app** → Execute as: **Me**, Who has access: **Anyone** → Deploy. Cấp quyền khi được hỏi.
+5. Copy **URL Web app** (dạng `https://script.google.com/macros/s/xxxxx/exec`).
+6. Vào Render → service `soil-scan-api` → **Environment**, thêm 2 biến:
+   - `APPS_SCRIPT_URL` = URL vừa copy
+   - `SHEETS_SECRET` = đúng chuỗi bí mật đã đặt ở bước 3
+7. Render tự deploy lại. Kiểm tra: `GET https://soil-scan-api-xxxx.onrender.com/api/health` phải thấy `"mapEnabled":true`.
+
+Nếu không thiết lập bước này, tab "Bản đồ cộng đồng" vẫn hiển thị bình thường nhưng luôn rỗng — không có gì lỗi.
+
 ## Cấu trúc thư mục
 
 ```
 soil-scan/
 ├── render.yaml       # Render Blueprint để deploy server/ bằng 1 click
+├── apps-script/
+│   └── Code.gs        # dán vào Google Apps Script để làm backend cho Sheet (bản đồ cộng đồng)
 ├── client/           # React frontend (deploy lên GitHub Pages)
 │   └── src/
 │       ├── components/
+│       │   └── CommunityMap.tsx   # tab bản đồ, dùng Leaflet + OpenStreetMap (miễn phí)
 │       ├── App.tsx
 │       ├── config.ts     # đọc VITE_API_URL để biết gọi backend ở đâu
 │       ├── history.ts
 │       └── types.ts
 └── server/           # Express backend (deploy lên Render, giữ GEMINI_API_KEY)
-    └── index.js
+    └── index.js       # /api/analyze, /api/map-points, ghi vào Sheet qua Apps Script
 ```
