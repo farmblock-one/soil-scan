@@ -2,11 +2,15 @@ import { useState } from "react";
 import { PhotoPicker } from "./components/PhotoPicker";
 import { LocationInput } from "./components/LocationInput";
 import { ResultCard } from "./components/ResultCard";
+import { CommunityMap } from "./components/CommunityMap";
 import { loadHistory, saveHistoryEntry } from "./history";
 import { API_BASE_URL } from "./config";
 import type { HistoryEntry, SoilAnalysisResult, SoilPhoto } from "./types";
 
+type Tab = "analyze" | "map";
+
 function App() {
+  const [tab, setTab] = useState<Tab>("analyze");
   const [photos, setPhotos] = useState<SoilPhoto[]>([]);
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
@@ -74,16 +78,44 @@ function App() {
           <h1 className="text-xl font-bold text-green-800">🌱 SoilScan</h1>
           <p className="text-sm text-stone-500">Chụp ảnh đất — AI đánh giá & gợi ý cải tạo</p>
         </div>
+        <div className="mx-auto flex max-w-3xl gap-1 px-4">
+          <button
+            type="button"
+            onClick={() => setTab("analyze")}
+            className={`border-b-2 px-3 py-2 text-sm font-medium ${
+              tab === "analyze" ? "border-green-700 text-green-800" : "border-transparent text-stone-500"
+            }`}
+          >
+            Phân tích đất
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("map")}
+            className={`border-b-2 px-3 py-2 text-sm font-medium ${
+              tab === "map" ? "border-green-700 text-green-800" : "border-transparent text-stone-500"
+            }`}
+          >
+            Bản đồ cộng đồng
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+        {tab === "map" && <CommunityMap />}
+
+        {tab === "analyze" && (
         <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
           <div>
             <label className="mb-1 block text-sm font-medium text-stone-700">Ảnh đất</label>
             <PhotoPicker photos={photos} onChange={setPhotos} />
           </div>
 
-          <LocationInput value={location} onChange={setLocation} />
+          <div>
+            <LocationInput value={location} onChange={setLocation} />
+            <p className="mt-1 text-xs text-stone-400">
+              Nếu bạn nhập vị trí, kết quả (không kèm ảnh) sẽ được thêm vào bản đồ cộng đồng công khai — trừ khi ảnh không phải là đất.
+            </p>
+          </div>
 
           <div>
             <label className="mb-1 block text-sm font-medium text-stone-700">Ghi chú thêm (tùy chọn)</label>
@@ -116,10 +148,11 @@ function App() {
             </button>
           </div>
         </section>
+        )}
 
-        {result && <ResultCard result={result} />}
+        {tab === "analyze" && result && <ResultCard result={result} />}
 
-        {history.length > 0 && (
+        {tab === "analyze" && history.length > 0 && (
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-stone-700">Lịch sử phân tích</h2>
             <div className="space-y-2">

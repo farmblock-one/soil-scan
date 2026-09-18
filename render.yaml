@@ -11,3 +11,7 @@ services:
         sync: false
       - key: GEMINI_MODEL
         value: gemini-3.6-flash
+      - key: APPS_SCRIPT_URL
+        sync: false
+      - key: SHEETS_SECRET
+        sync: false
