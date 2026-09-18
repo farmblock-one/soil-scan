@@ -3,6 +3,7 @@ import { PhotoPicker } from "./components/PhotoPicker";
 import { LocationInput } from "./components/LocationInput";
 import { ResultCard } from "./components/ResultCard";
 import { loadHistory, saveHistoryEntry } from "./history";
+import { API_BASE_URL } from "./config";
 import type { HistoryEntry, SoilAnalysisResult, SoilPhoto } from "./types";
 
 function App() {
@@ -24,7 +25,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await fetch("/api/analyze", {
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
