@@ -2,50 +2,57 @@
 
 Ứng dụng web cho phép người dùng chụp/tải lên ảnh đất, nhập vị trí, và nhận đánh giá + kiến nghị cải tạo đất từ AI (Google Gemini Vision).
 
-**Dùng thử ngay:** https://farmblock-one.github.io/soil-scan/ (cần tự nhập Gemini API key miễn phí của bạn — xem hướng dẫn bên dưới)
+**Web app:** https://farmblock-one.github.io/soil-scan/ (frontend, tĩnh trên GitHub Pages)
+**Backend API:** deploy trên Render.com — xem hướng dẫn bên dưới.
 
 ## Kiến trúc
 
-- `client/` — React + Vite + TypeScript + Tailwind CSS. Đây là toàn bộ app: chụp/tải nhiều ảnh, nhập vị trí (GPS hoặc thủ công), ghi chú, gọi thẳng Gemini API từ trình duyệt, hiển thị kết quả, lưu lịch sử trong `localStorage`. Được deploy tĩnh lên **GitHub Pages** — không cần server.
-- `server/` — Express API tùy chọn (không bắt buộc). Nếu bạn muốn giấu API key ở phía server thay vì để người dùng tự nhập, có thể tự host backend này và trỏ frontend gọi qua đó thay vì gọi thẳng Gemini. Không được dùng bởi bản GitHub Pages.
+- `client/` — React + Vite + TypeScript + Tailwind CSS. Deploy tĩnh lên **GitHub Pages**.
+- `server/` — Express API, nhận ảnh (base64) + vị trí + ghi chú, gọi Google Gemini Vision API bằng key giữ ở server, trả JSON đã phân tích. Deploy lên **Render.com** (free tier). Frontend gọi tới backend qua URL cấu hình trong biến môi trường `VITE_API_URL` lúc build.
 
-### Vì sao client gọi thẳng Gemini thay vì qua backend?
-
-GitHub Pages chỉ host được file tĩnh (HTML/CSS/JS), không chạy được server Node để giấu API key. Vì vậy bản deploy trên GitHub Pages cho mỗi người dùng tự nhập API key Gemini của họ — key chỉ lưu trong `localStorage` của trình duyệt người dùng đó và được gửi thẳng từ trình duyệt tới Google, không đi qua máy chủ nào của dự án này, không nằm trong mã nguồn public. Nếu bạn muốn giấu key hẳn (ví dụ deploy nội bộ cho một nhóm dùng chung 1 key), dùng `server/` và deploy backend riêng (xem phần "Chạy với backend" bên dưới).
+API key Gemini **chỉ nằm trên server**, không xuất hiện trong code frontend hay bị lộ cho người dùng — đúng như thiết kế ban đầu.
 
 ## 1. Lấy API key Gemini miễn phí
 
 1. Vào https://aistudio.google.com/app/apikey
 2. Đăng nhập bằng tài khoản Google, tạo API key mới (không cần thẻ tín dụng).
-3. Gemini có free tier với hạn mức yêu cầu/phút và /ngày — đủ dùng để thử nghiệm và dùng cá nhân. Xem hạn mức mới nhất tại https://ai.google.dev/pricing.
+3. Xem hạn mức free tier mới nhất tại https://ai.google.dev/pricing.
 
-## 2. Dùng ngay trên GitHub Pages
+## 2. Deploy backend lên Render (một lần)
 
-1. Mở https://farmblock-one.github.io/soil-scan/
-2. Dán API key Gemini của bạn vào ô "Nhập Gemini API key" (chỉ cần làm 1 lần, trình duyệt sẽ nhớ).
-3. Chụp/tải ảnh đất, nhập vị trí (tùy chọn), nhấn "Phân tích đất".
+1. Vào https://render.com, đăng ký tài khoản miễn phí (không cần thẻ).
+2. Chọn **New → Blueprint**, kết nối GitHub và chọn repo `farmblock-one/soil-scan`. Render sẽ tự đọc file `render.yaml` ở gốc repo và tạo sẵn service `soil-scan-api`.
+3. Khi được hỏi biến môi trường `GEMINI_API_KEY`, dán API key Gemini của bạn vào (Render lưu kín, không public).
+4. Bấm **Apply/Deploy**. Sau khi build xong, Render cho bạn 1 URL dạng `https://soil-scan-api-xxxx.onrender.com`.
+5. Kiểm tra: mở `https://soil-scan-api-xxxx.onrender.com/api/health` — thấy `{"ok":true,"configured":true}` là backend đã sẵn sàng.
 
-## 3. Chạy ở máy local (để phát triển)
+> Lưu ý: gói free của Render sẽ "ngủ" sau ~15 phút không có request, lần gọi đầu tiên sau đó có thể mất 30–60 giây để backend khởi động lại — đây là giới hạn của free tier, không phải lỗi.
+
+## 3. Trỏ frontend vào backend đã deploy
+
+Sau khi có URL backend ở bước trên, build frontend với biến môi trường `VITE_API_URL` trỏ tới URL đó:
 
 ```bash
 cd client
-npm install
-npm run dev
+VITE_API_URL=https://soil-scan-api-xxxx.onrender.com npm run build
 ```
 
-Mở địa chỉ Vite in ra (mặc định `http://localhost:5173`), nhập API key trong app như trên.
+Sau đó publish thư mục `dist/` lên nhánh `gh-pages` (đã được cấu hình sẵn cho repo này). Nếu bạn nhờ Claude làm bước deploy, chỉ cần gửi Claude URL backend từ bước 2 để cập nhật và publish lại.
 
-## 4. Chạy với backend (tùy chọn, để giấu API key)
+## 4. Chạy ở máy local (để phát triển)
 
 ```bash
+# Terminal 1: backend
 cd server
 npm install
-cp .env.example .env
-# Mở .env và dán GEMINI_API_KEY vào
-npm run dev
-```
+cp .env.example .env   # dán GEMINI_API_KEY vào
+npm run dev             # chạy tại http://localhost:3001
 
-Backend chạy tại `http://localhost:3001`, có endpoint `POST /api/analyze` nhận `{ images, location, notes }` và trả JSON phân tích — tự nối vào frontend của bạn nếu muốn dùng theo hướng này thay vì nhập key trực tiếp trong trình duyệt.
+# Terminal 2: frontend
+cd client
+npm install
+npm run dev              # chạy tại http://localhost:5173, tự proxy /api sang cổng 3001
+```
 
 ## 5. Sử dụng
 
@@ -66,13 +73,14 @@ Lưu ý: Đây là đánh giá sơ bộ qua hình ảnh bằng AI, mang tính th
 
 ```
 soil-scan/
-├── client/          # React frontend (deploy lên GitHub Pages)
+├── render.yaml       # Render Blueprint để deploy server/ bằng 1 click
+├── client/           # React frontend (deploy lên GitHub Pages)
 │   └── src/
 │       ├── components/
 │       ├── App.tsx
-│       ├── gemini.ts    # gọi Gemini API trực tiếp từ trình duyệt
+│       ├── config.ts     # đọc VITE_API_URL để biết gọi backend ở đâu
 │       ├── history.ts
 │       └── types.ts
-└── server/          # Express backend tùy chọn (không dùng cho bản GitHub Pages)
+└── server/           # Express backend (deploy lên Render, giữ GEMINI_API_KEY)
     └── index.js
 ```
