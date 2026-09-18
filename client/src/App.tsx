@@ -2,7 +2,9 @@ import { useState } from "react";
 import { PhotoPicker } from "./components/PhotoPicker";
 import { LocationInput } from "./components/LocationInput";
 import { ResultCard } from "./components/ResultCard";
+import { ApiKeySettings } from "./components/ApiKeySettings";
 import { loadHistory, saveHistoryEntry } from "./history";
+import { analyzeSoil, loadApiKey, saveApiKey } from "./gemini";
 import type { HistoryEntry, SoilAnalysisResult, SoilPhoto } from "./types";
 
 function App() {
@@ -13,8 +15,13 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SoilAnalysisResult | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [apiKey, setApiKey] = useState<string>(() => loadApiKey());
 
   async function handleAnalyze() {
+    if (!apiKey) {
+      setError("Vui lòng nhập Gemini API key trước khi phân tích.");
+      return;
+    }
     if (photos.length === 0) {
       setError("Vui lòng chụp hoặc tải lên ít nhất một ảnh đất.");
       return;
@@ -24,22 +31,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          images: photos.map((p) => ({ data: p.dataUrl, mimeType: p.mimeType })),
-          location,
-          notes,
-        }),
-      });
-
-      const body = await response.json();
-      if (!response.ok) {
-        throw new Error(body.error || "Có lỗi xảy ra khi phân tích.");
-      }
-
-      const analysis = body.result as SoilAnalysisResult;
+      const analysis = await analyzeSoil(photos, location, notes, apiKey);
       setResult(analysis);
 
       const entry: HistoryEntry = {
@@ -76,6 +68,14 @@ function App() {
       </header>
 
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+        <ApiKeySettings
+          apiKey={apiKey}
+          onSave={(key) => {
+            setApiKey(key);
+            saveApiKey(key);
+          }}
+        />
+
         <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
           <div>
             <label className="mb-1 block text-sm font-medium text-stone-700">Ảnh đất</label>
