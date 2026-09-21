@@ -45,7 +45,7 @@ export function PhotoPicker({ photos, onChange }: Props) {
     <div>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
         {photos.map((photo) => (
-          <div key={photo.id} className="relative aspect-square overflow-hidden rounded-lg border border-stone-200">
+          <div key={photo.id} className="relative aspect-square overflow-hidden rounded-lg border border-brand-line">
             <img src={photo.dataUrl} alt="Ảnh đất" className="h-full w-full object-cover" />
             <button
               type="button"
@@ -62,7 +62,7 @@ export function PhotoPicker({ photos, onChange }: Props) {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-stone-300 text-stone-500 hover:border-green-600 hover:text-green-700"
+            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-brand-line text-brand-muted hover:border-brand-primary hover:text-brand-primary"
           >
             <span className="text-2xl">+</span>
             <span className="text-xs">Thêm ảnh</span>
@@ -80,7 +80,7 @@ export function PhotoPicker({ photos, onChange }: Props) {
         onChange={(e) => handleFiles(e.target.files)}
       />
 
-      <p className="mt-2 text-xs text-stone-500">
+      <p className="mt-2 text-xs text-brand-muted">
         Đã chọn {photos.length}/{MAX_PHOTOS} ảnh. Chụp nhiều góc (bề mặt, cắt lớp đất nếu có, khu vực xung quanh) để có đánh giá chính xác hơn.
       </p>
     </div>

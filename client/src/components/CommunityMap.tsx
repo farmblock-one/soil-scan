@@ -31,7 +31,7 @@ interface MapPoint {
 }
 
 function healthColor(score: number) {
-  if (score >= 70) return "#15803d";
+  if (score >= 70) return "#204d2b";
   if (score >= 40) return "#b45309";
   return "#b91c1c";
 }
@@ -53,7 +53,7 @@ export function CommunityMap() {
   }, []);
 
   if (loading) {
-    return <p className="p-6 text-center text-sm text-stone-500">Đang tải bản đồ...</p>;
+    return <p className="p-6 text-center text-sm text-brand-muted">Đang tải bản đồ...</p>;
   }
 
   if (error) {
@@ -66,12 +66,12 @@ export function CommunityMap() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-brand-muted">
         {points.length > 0
           ? `${points.length} điểm đất đã được cộng đồng chia sẻ.`
           : "Chưa có dữ liệu nào. Hãy là người đầu tiên phân tích đất kèm vị trí!"}
       </p>
-      <div className="overflow-hidden rounded-xl border border-stone-200" style={{ height: 420 }}>
+      <div className="overflow-hidden rounded-xl border border-brand-line" style={{ height: 420 }}>
         <MapContainer center={center} zoom={points.length ? 6 : 5} style={{ height: "100%", width: "100%" }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -83,8 +83,8 @@ export function CommunityMap() {
                 <div className="space-y-1 text-sm">
                   <p className="font-semibold">{p.soil_type}</p>
                   <p style={{ color: healthColor(p.health_score) }}>Sức khỏe đất: {p.health_score}/100</p>
-                  <p className="text-stone-600">{p.location_label}</p>
-                  <p className="text-xs text-stone-400">{new Date(p.timestamp).toLocaleDateString("vi-VN")}</p>
+                  <p className="text-brand-darkest/80">{p.location_label}</p>
+                  <p className="text-xs text-brand-muted">{new Date(p.timestamp).toLocaleDateString("vi-VN")}</p>
                 </div>
               </Popup>
             </Marker>
