@@ -1,4 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Baloo 2", "Be Vietnam Pro", system-ui, sans-serif;
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+
+  --color-brand-darkest: #13331c;
+  --color-brand-dark: #204d2b;
+  --color-brand-primary: #3a8047;
+  --color-brand-light: #86c046;
+  --color-brand-lighter: #b4e27e;
+  --color-brand-bg: #ebf2ed;
+  --color-brand-surface: #ffffff;
+  --color-brand-line: #d8e6da;
+  --color-brand-muted: #4e8d59;
+}
 
 :root {
   color-scheme: light;
@@ -6,6 +22,7 @@
 
 body {
   margin: 0;
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
-  background-color: #f5f3ee;
+  font-family: var(--font-sans);
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-darkest);
 }
